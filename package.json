@@ -1,0 +1,29 @@
+{
+  "name": "headless-multistep-form-vue",
+  "version": "1.0.3",
+  "description": "Headless mutli step form for Vue.js",
+  "main": "main.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hdood/headless-multistep-form-vue.git"
+  },
+  "keywords": [
+    "headless",
+    "multiStepform",
+    "form",
+    "Vue.js",
+    "form",
+    "multistep",
+    "form",
+    "headlessui"
+  ],
+  "author": "Mahdi Bouguerzi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hdood/headless-multistep-form-vue/issues"
+  },
+  "homepage": "https://github.com/hdood/headless-multistep-form-vue#readme"
+}
