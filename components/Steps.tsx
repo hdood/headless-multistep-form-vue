@@ -6,9 +6,7 @@ const Steps: any = {
 		const currentStepId = this.$attrs.currentStepId;
 		const slot = this.$slots;
 
-		console.log(slot[0]());
-
-		return h("div", this.$slots[0]()[0]);
+		return h("div", this.$slots.default());
 	},
 };
 export default Steps;
