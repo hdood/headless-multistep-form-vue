@@ -8,14 +8,28 @@ const multiStepForm: any = {
 		const stepsWrapper = slots.find(
 			(slot: any) => slot.type.name == "Steps"
 		);
-		const footer = slots.find((slot: any) => slot.type.name == "Footer");
+		const Footer = slots.find((slot: any) => slot.type.name == "Footer");
 		const Header = slots.find((slot: any) => slot.type.name == "Header");
 
-		const steps = stepsWrapper.children
-			.default()
-			.filter((step: any) => step.type.name == "Step");
+		const steps = stepsWrapper.children.default();
 
 		const currentStep = steps[currentStepId.value];
+		const last = currentStepId.value == steps.length - 1;
+
+		// if the current step is a transition then we get the step from the Step child
+		if (typeof currentStep.type == "function") {
+			const step = currentStep.children
+				.default()
+				.find((step: any) => step.type.name == "Step");
+
+			const submit = step?.props?.submit;
+
+			if (!submit && last) {
+				throw Error("the last step must have a submit function");
+			}
+			currentStep.props.validation = step?.props?.validation;
+			currentStep.props.submit = submit;
+		}
 
 		const valid = computed(() => {
 			if (!currentStep.props) return true;
@@ -24,27 +38,46 @@ const multiStepForm: any = {
 		});
 
 		function nextStep() {
-			if (!currentStep.props) {
+			// if the current step is a transition we get the validation function of the step child
+
+			const validation = currentStep?.props?.validation;
+			if (!validation) {
 				currentStepId.value++;
 				return;
 			}
-			if (!currentStep.props.validation) {
-				currentStepId.value++;
-				return;
-			}
-			if (
-				currentStepId.value <= steps.length - 1 &&
-				currentStep.props.validation()
-			) {
-				if (currentStep.props.submit) {
-					currentStep.props.submit();
-				} else {
+
+			if (validation?.()) {
+				if (!last) {
 					currentStepId.value++;
+					return;
 				}
+				const submit = currentStep?.props?.submit;
+
+				if (!submit) {
+					throw Error("the final step must have a submit function");
+				}
+				submit();
 			}
 		}
 		function previousStep() {
 			if (currentStepId.value != 0) currentStepId.value--;
+		}
+
+		function renderSteps() {
+			const renderedSteps: any = [];
+			steps.map((step: any, index: number) => {
+				if (typeof step.type == "function") {
+					if (index != currentStepId.value) {
+						step!.children.default = () => [];
+					}
+					renderedSteps.push(step);
+				} else {
+					if (index == currentStepId.value) {
+						renderedSteps.push(step);
+					}
+				}
+			});
+			return renderedSteps;
 		}
 
 		return h("div", [
@@ -52,22 +85,8 @@ const multiStepForm: any = {
 				currentStepId: currentStepId.value,
 				stepsCount: steps.length,
 			}),
-			h(
-				stepsWrapper,
-				h(
-					Transition,
-					{
-						enterActiveClass:
-							"transition-all absolute duration-300 delay-300",
-						leaveActiveClass:
-							"transition-all absolute duration-300",
-						enterFromClass: "opacity-0 translate-x-4",
-						leaveToClass: "opacity-0 -translate-x-4",
-					},
-					() => h(currentStep, { key: currentStepId.value })
-				)
-			),
-			h(footer, {
+			h(stepsWrapper, null, { default: () => renderSteps() }),
+			h(Footer, {
 				nextStep,
 				previousStep,
 				valid,
